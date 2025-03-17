@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Space Defender | Battle Against Rogue AI</title>
+    <meta name="description" content="Battle against rogue AI spaceships in this exciting space shooter game. Can you defend humanity?">
+    
+    <!-- Social Media Meta Tags -->
+    <meta property="og:title" content="AI Space Defender">
+    <meta property="og:description" content="I just scored in this AI-themed space shooter game! Can you beat my score?">
+    <meta property="og:image" content="https://via.placeholder.com/1200x630/0a0a2a/ffffff?text=AI+Space+Defender">
+    <meta property="og:url" content="https://yourwebsite.com/ai-space-defender">
+    <meta name="twitter:card" content="summary_large_image">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- P5.js Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.js"></script>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="circuit-lines"></div>
+    <div id="title">AI SPACE DEFENDER</div>
+    <div id="game-container"></div>
+    
+    <!-- Share container -->
+    <div id="share-container">
+        <button class="share-button" onclick="shareOnX()">Share on X</button>
+        <button class="share-button leaderboard-button" onclick="openLeaderboard()">View Leaderboard</button>
+    </div>
+    
+    <!-- Score submission modal -->
+    <div id="submission-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSubmissionModal()">&times;</span>
+            <h2>Submit Your Score</h2>
+            
+            <div id="submission-form">
+                <form id="score-form" onsubmit="event.preventDefault(); submitScore();">
+                    <div class="form-group">
+                        <label for="player-name">Your Name:</label>
+                        <input type="text" id="player-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="player-email">Your Email:</label>
+                        <input type="email" id="player-email" required>
+                    </div>
+                    <button type="submit" class="form-submit">Submit Score</button>
+                </form>
+                <p class="privacy-notice">* Your email will only be used to identify your scores on the leaderboard.</p>
+            </div>
+            
+            <div id="submission-loading" class="loading">
+                <p>Submitting your score...</p>
+            </div>
+            
+            <div id="submission-success" class="success">
+                <p>Your score has been submitted successfully!</p>
+                <button onclick="openLeaderboard()">View Leaderboard</button>
+            </div>
+            
+            <div id="submission-error" class="error">
+                <p>There was an error submitting your score. Please try again.</p>
+                <button onclick="retrySubmission()">Try Again</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Leaderboard modal -->
+    <div id="leaderboard-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLeaderboardModal()">&times;</span>
+            <h2>AI Space Defender Leaderboard</h2>
+            
+            <div class="leaderboard-filters">
+                <button class="filter-button time-filter active" data-filter="all">All Time</button>
+                <button class="filter-button time-filter" data-filter="weekly">Weekly</button>
+                <button class="filter-button time-filter" data-filter="daily">Daily</button>
+            </div>
+            
+            <div id="leaderboard-loading" class="loading">
+                <p>Loading leaderboard...</p>
+            </div>
+            
+            <div id="leaderboard-content">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Score</th>
+                            <th>Time</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <!-- Leaderboard entries will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="leaderboard-error" class="error">
+                <p>There was an error loading the leaderboard. Please try again.</p>
+                <button onclick="loadLeaderboard()">Try Again</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Scripts -->
+    <script src="js/utils/supabase-config.js"></script>
+    <script src="js/utils/LeaderboardService.js"></script>
+    
+    <!-- Game Classes -->
+    <script src="js/classes/Ship.js"></script>
+    <script src="js/classes/Enemy.js"></script>
+    <script src="js/classes/Bullet.js"></script>
+    <script src="js/classes/PowerUp.js"></script>
+    <script src="js/classes/Particle.js"></script>
+    
+    <!-- Game UI -->
+    <script src="js/ui/GameUI.js"></script>
+    
+    <!-- Game Sound -->
+    <script src="js/sound/SoundEffects.js"></script>
+    
+    <!-- Game Logic -->
+    <script src="js/game/GameLogic.js"></script>
+    <script src="js/game/Game.js"></script>
+    
+    <!-- Leaderboard and UI Integration -->
+    <script>
+        // Current player data
+        let currentPlayerEmail = '';
+        let currentPlayerName = '';
+        
+        // Initialize Leaderboard Service
+        const leaderboardService = new LeaderboardService();
+        
+        // Function to share score on X (Twitter)
+        function shareOnX() {
+            const text = `I just scored ${score} points in AI Space Defender! Can you beat my score? #AISpaceDefender #GameDev`;
+            const url = encodeURIComponent(window.location.href);
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`, '_blank');
+        }
+        
+        // Show share buttons when game is over
+        window.addEventListener('message', function(event) {
+            console.log('Message received from game:', event.data);
+            if (event.data === 'gameover') {
+                document.getElementById('share-container').style.display = 'block';
+                // Slight delay to ensure game variables are properly set
+                setTimeout(function() {
+                    openSubmissionModal();
+                }, 500);
+            } else if (event.data === 'playing') {
+                document.getElementById('share-container').style.display = 'none';
+                closeSubmissionModal();
+                closeLeaderboardModal();
+            } else if (event.data === 'title') {
+                document.getElementById('share-container').style.display = 'none';
+                closeSubmissionModal();
+                closeLeaderboardModal();
+            } else if (event.data === 'openLeaderboard') {
+                // Direct request to open leaderboard from game
+                openLeaderboard();
+            } else if (event.data === 'showLeaderboardDirectly') {
+                // Skip score submission and show leaderboard directly
+                openLeaderboard();
+            }
+        });
+        
+        // Debug function to help troubleshoot
+        function debugGameState() {
+            console.log('Current game state:', window.gameState);
+            console.log('Score:', window.score);
+            console.log('Game start time:', window.gameStartTime);
+            console.log('Game end time:', window.gameEndTime);
+        }
+        
+        // Submission modal functions
+        function openSubmissionModal() {
+            console.log('Opening submission modal, score:', window.score);
+            document.getElementById('submission-modal').style.display = 'flex';
+            document.getElementById('submission-form').style.display = 'block';
+            document.getElementById('submission-loading').style.display = 'none';
+            document.getElementById('submission-success').style.display = 'none';
+            document.getElementById('submission-error').style.display = 'none';
+            
+            // Load saved name and email from localStorage if available
+            const savedName = localStorage.getItem('playerName');
+            const savedEmail = localStorage.getItem('playerEmail');
+            
+            if (savedName) {
+                document.getElementById('player-name').value = savedName;
+            }
+            
+            if (savedEmail) {
+                document.getElementById('player-email').value = savedEmail;
+            }
+        }
+        
+        function closeSubmissionModal() {
+            document.getElementById('submission-modal').style.display = 'none';
+        }
+        
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(String(email).toLowerCase());
+        }
+        
+        function submitScore() {
+            // Get form data
+            const playerName = document.getElementById('player-name').value;
+            const playerEmail = document.getElementById('player-email').value;
+            
+            // Validate form
+            if (!playerName || !playerEmail) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            // Simple email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(playerEmail)) {
+                alert('Please enter a valid email address');
+                return;
+            }
+            
+            // Prevent submitting a score of 0
+            if (window.score <= 0) {
+                alert('Your score must be greater than 0 to submit to the leaderboard');
+                return;
+            }
+            
+            // Show loading state
+            document.getElementById('submission-form').style.display = 'none';
+            document.getElementById('submission-loading').style.display = 'block';
+            
+            // Calculate play time
+            const playTime = Math.floor((window.gameEndTime - window.gameStartTime) / 1000);
+            
+            // Log values for debugging
+            console.log('Submitting score with values:');
+            console.log('Name:', playerName);
+            console.log('Email:', playerEmail);
+            console.log('Score:', window.score);
+            console.log('Play Time:', playTime);
+            
+            // Submit score to Supabase
+            leaderboardService.submitScore(playerName, playerEmail, window.score, playTime)
+                .then(result => {
+                    // Hide loading state
+                    document.getElementById('submission-loading').style.display = 'none';
+                    
+                    if (result.success) {
+                        // Show success message
+                        document.getElementById('submission-success').style.display = 'block';
+                        
+                        // After 3 seconds, show leaderboard
+                        setTimeout(() => {
+                            closeSubmissionModal();
+                            openLeaderboard();
+                        }, 3000);
+                    } else {
+                        // Show error message
+                        console.error('Error submitting score:', result.error);
+                        document.getElementById('submission-error').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    // Hide loading state and show error
+                    document.getElementById('submission-loading').style.display = 'none';
+                    document.getElementById('submission-error').style.display = 'block';
+                    console.error('Error submitting score:', error);
+                });
+        }
+        
+        function retrySubmission() {
+            document.getElementById('submission-error').style.display = 'none';
+            document.getElementById('submission-form').style.display = 'block';
+        }
+        
+        // Leaderboard modal functions
+        function openLeaderboard() {
+            document.getElementById('leaderboard-modal').style.display = 'flex';
+            loadLeaderboard();
+        }
+        
+        function closeLeaderboardModal() {
+            document.getElementById('leaderboard-modal').style.display = 'none';
+        }
+        
+        function loadLeaderboard(timeFilter = 'all') {
+            // Show loading state
+            document.getElementById('leaderboard-loading').style.display = 'block';
+            document.getElementById('leaderboard-content').style.display = 'none';
+            document.getElementById('leaderboard-error').style.display = 'none';
+            
+            // Update active filter button
+            document.querySelectorAll('.time-filter').forEach(button => {
+                if (button.dataset.filter === timeFilter) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+            
+            // Get leaderboard data from Supabase
+            leaderboardService.getLeaderboard(timeFilter)
+                .then(result => {
+                    if (result.success) {
+                        // Show leaderboard content
+                        document.getElementById('leaderboard-loading').style.display = 'none';
+                        document.getElementById('leaderboard-content').style.display = 'block';
+                        
+                        // Clear existing leaderboard entries
+                        const leaderboardBody = document.getElementById('leaderboard-body');
+                        leaderboardBody.innerHTML = '';
+                        
+                        // Add leaderboard entries
+                        result.data.forEach((entry, index) => {
+                            const row = document.createElement('tr');
+                            
+                            // Highlight current player's score
+                            if (entry.email === currentPlayerEmail) {
+                                row.classList.add('current-player');
+                            }
+                            
+                            // Format date
+                            const date = new Date(entry.created_at);
+                            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                            const formattedDate = `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+                            
+                            row.innerHTML = `
+                                <td>${index + 1}</td>
+                                <td>${entry.player_name}</td>
+                                <td>${entry.score}</td>
+                                <td>${entry.time_survived || 0}s</td>
+                                <td>${formattedDate}</td>
+                            `;
+                            
+                            leaderboardBody.appendChild(row);
+                        });
+                        
+                        // Show message if no entries
+                        if (result.data.length === 0) {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td colspan="5" style="text-align: center;">No scores found for this time period</td>
+                            `;
+                            leaderboardBody.appendChild(row);
+                        }
+                    } else {
+                        // Show error message
+                        document.getElementById('leaderboard-loading').style.display = 'none';
+                        document.getElementById('leaderboard-error').style.display = 'block';
+                        console.error('Error loading leaderboard:', result.error);
+                    }
+                })
+                .catch(error => {
+                    // Show error message
+                    document.getElementById('leaderboard-loading').style.display = 'none';
+                    document.getElementById('leaderboard-error').style.display = 'block';
+                    console.error('Error loading leaderboard:', error);
+                });
+        }
+        
+        // Set up filter buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.time-filter').forEach(button => {
+                button.addEventListener('click', function() {
+                    loadLeaderboard(this.dataset.filter);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

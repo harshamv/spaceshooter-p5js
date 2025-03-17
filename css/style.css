@@ -1,0 +1,243 @@
+/* Main game styles */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #0a0a1a;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+h1 {
+  color: #00ccff;
+  text-align: center;
+  margin-top: 20px;
+  text-shadow: 0 0 10px rgba(0, 204, 255, 0.7);
+}
+
+#game-container {
+  position: relative;
+  width: 400px;
+  height: 600px;
+  margin: 0 auto;
+  border: 3px solid #00ccff;
+  border-radius: 5px;
+  box-shadow: 0 0 20px rgba(0, 204, 255, 0.5);
+  overflow: hidden;
+}
+
+/* Share container styles */
+#share-container {
+  display: none;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.share-button {
+  display: inline-block;
+  margin: 10px;
+  padding: 10px 20px;
+  background-color: #1da1f2;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.share-button:hover {
+  background-color: #0c85d0;
+  transform: scale(1.05);
+}
+
+.leaderboard-button {
+  background-color: #00ccff;
+}
+
+.leaderboard-button:hover {
+  background-color: #00a3cc;
+}
+
+/* Modal styles */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: #0a0a1a;
+  padding: 20px;
+  border-radius: 10px;
+  border: 2px solid #00ccff;
+  box-shadow: 0 0 20px rgba(0, 204, 255, 0.5);
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  color: #aaa;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close:hover {
+  color: #fff;
+}
+
+h2 {
+  color: #00ccff;
+  text-align: center;
+  margin-top: 0;
+}
+
+/* Form styles */
+form {
+  margin-top: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  color: #00ccff;
+}
+
+input[type="text"],
+input[type="email"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #00ccff;
+  background-color: rgba(0, 204, 255, 0.1);
+  color: white;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background-color: #00ccff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #00a3cc;
+}
+
+/* Loading and message styles */
+.loading, .success, .error {
+  text-align: center;
+  padding: 20px;
+  display: none;
+}
+
+.loading {
+  color: #00ccff;
+}
+
+.success {
+  color: #00ff00;
+}
+
+.error {
+  color: #ff0000;
+}
+
+/* Leaderboard styles */
+.leaderboard-filters {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.filter-button {
+  margin: 0 5px;
+  padding: 5px 10px;
+  background-color: #333;
+  color: white;
+  border: 1px solid #00ccff;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.filter-button.active {
+  background-color: #00ccff;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.leaderboard-table th, .leaderboard-table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #333;
+}
+
+.leaderboard-table th {
+  background-color: rgba(0, 204, 255, 0.2);
+  color: #00ccff;
+}
+
+.leaderboard-table tr:hover {
+  background-color: rgba(0, 204, 255, 0.1);
+}
+
+.leaderboard-table .current-player {
+  background-color: rgba(0, 204, 255, 0.3);
+  font-weight: bold;
+}
+
+.privacy-notice {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 15px;
+  text-align: center;
+}
+
+/* Responsive styles */
+@media (max-width: 600px) {
+  #game-container {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2/3;
+  }
+  
+  .modal-content {
+    width: 95%;
+    padding: 15px;
+  }
+}
